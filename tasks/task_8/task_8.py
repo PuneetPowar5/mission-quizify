@@ -121,29 +121,30 @@ class QuizGenerator:
 
         Note: This method relies on `generate_question_with_vectorstore` for question generation and `validate_question` for ensuring question uniqueness. Ensure `question_bank` is properly initialized and managed.
         """
-        self.question_bank = [] # Reset the question bank
+        self.question_bank = []  # Reset the question bank
+        num_generated = 0  # Track the number of successfully generated questions
 
-        for _ in range(self.num_questions):
-            ##### YOUR CODE HERE #####
-            question_str = self.generate_question_with_vectorstore()# Use class method to generate question
+        while num_generated < self.num_questions:
+            # Use class method to generate question
+            question_str = self.generate_question_with_vectorstore()
 
-            ##### YOUR CODE HERE #####
             try:
-                question = json.loads(question_str)# Convert the JSON String to a dictionary
+                # Convert the JSON string to a dictionary
+                question = json.loads(question_str)
             except json.JSONDecodeError:
-                print("Failed to decode question JSON.")
+                print("Failed to decode question JSON. Regenerating...")
                 continue  # Skip this iteration if JSON decoding fails
-            ##### YOUR CODE HERE #####
 
-            ##### YOUR CODE HERE #####
             # Validate the question using the validate_question method
             if self.validate_question(question):
                 print("Successfully generated unique question")
                 # Add the valid and unique question to the bank
                 self.question_bank.append(question)
+                num_generated += 1  # Increment the count of generated questions
             else:
-                print("Duplicate or invalid question detected.")
-            ##### YOUR CODE HERE #####
+                print("Duplicate or invalid question detected. Regenerating...")
+                # Regenerate the question
+                continue
 
         return self.question_bank
 
