@@ -1,15 +1,16 @@
 import sys
 import os
 import streamlit as st
+
 sys.path.append(os.path.abspath('../../'))
 from tasks.task_3.task_3 import DocumentProcessor
 from tasks.task_4.task_4 import EmbeddingClient
-
 
 # Import Task libraries
 from langchain_core.documents import Document
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.vectorstores import Chroma
+
 
 class ChromaCollectionCreator:
     def __init__(self, processor, embed_model):
@@ -18,9 +19,9 @@ class ChromaCollectionCreator:
         :param processor: An instance of DocumentProcessor that has processed documents.
         :param embeddings_config: An embedding client for embedding documents.
         """
-        self.processor = processor      # This will hold the DocumentProcessor from Task 3
+        self.processor = processor  # This will hold the DocumentProcessor from Task 3
         self.embed_model = embed_model  # This will hold the EmbeddingClient from Task 4
-        self.db = None                  # This will hold the Chroma collection
+        self.db = None  # This will hold the Chroma collection
 
     def create_chroma_collection(self):
         """
@@ -71,12 +72,14 @@ class ChromaCollectionCreator:
         print(texts)
 
         if texts is not None:
-            st.success(f"Successfully split pages to {len(texts)} documents!", icon="✅")
+            st.success(f"Successfully split pages to {len(texts)} documents!",
+                       icon="✅")
 
         # Step 3: Create the Chroma Collection
         # https://docs.trychroma.com/
         # Create a Chroma in-memory client using the text chunks and the embeddings model
-        self.db = Chroma.from_documents(texts, self.embed_model, collection_name="Task_5")
+        self.db = Chroma.from_documents(texts, self.embed_model,
+                                        collection_name="Task_5")
 
         if self.db:
             st.success("Successfully created Chroma Collection!", icon="✅")
@@ -99,8 +102,13 @@ class ChromaCollectionCreator:
         else:
             st.error("Chroma Collection has not been created!", icon="🚨")
 
+    # Function to call the as_retriever() method on the database
+    def as_retriever(self):
+        return self.db.as_retriever()
+
+
 if __name__ == "__main__":
-    processor = DocumentProcessor() # Initialize from Task 3
+    processor = DocumentProcessor()  # Initialize from Task 3
     processor.ingest_documents()
 
     embed_config = {
@@ -109,7 +117,7 @@ if __name__ == "__main__":
         "location": "us-central1"
     }
 
-    embed_client = EmbeddingClient(**embed_config) # Initialize from Task 4
+    embed_client = EmbeddingClient(**embed_config)  # Initialize from Task 4
 
     chroma_creator = ChromaCollectionCreator(processor, embed_client)
 
