@@ -27,7 +27,8 @@ class QuizManager:
         Note: This initialization method is crucial for setting the foundation of the `QuizManager` class, enabling it to manage the quiz questions effectively. The class will rely on this setup to perform operations such as retrieving specific questions by index and navigating through the quiz.
         """
         ##### YOUR CODE HERE #####
-        pass # Placeholder
+        self.questions = questions
+        self.total_questions = len(questions)
     ##########################################################
 
     def get_question_at_index(self, index: int):
@@ -41,7 +42,7 @@ class QuizManager:
         # Ensure index is always within bounds using modulo arithmetic
         valid_index = index % self.total_questions
         return self.questions[valid_index]
-    
+
     ##########################################################
     def next_question_index(self, direction=1):
         """
@@ -62,45 +63,46 @@ class QuizManager:
         Note: Ensure that `st.session_state["question_index"]` is initialized before calling this method. This navigation method enhances the user experience by providing fluid access to quiz questions.
         """
         ##### YOUR CODE HERE #####
-        pass  # Placeholder for implementation
+        new_index = ((st.session_state["question_index"]) + direction) % self.total_questions
+        st.session_state["question_index"] = new_index
     ##########################################################
 
 
 # Test Generating the Quiz
 if __name__ == "__main__":
-    
+
     embed_config = {
         "model_name": "textembedding-gecko@003",
-        "project": "YOUR-PROJECT-ID-HERE",
+        "project": "quizify-424619",
         "location": "us-central1"
     }
-    
+
     screen = st.empty()
     with screen.container():
         st.header("Quiz Builder")
         processor = DocumentProcessor()
         processor.ingest_documents()
-    
-        embed_client = EmbeddingClient(**embed_config) 
-    
+
+        embed_client = EmbeddingClient(**embed_config)
+
         chroma_creator = ChromaCollectionCreator(processor, embed_client)
-    
+
         question = None
         question_bank = None
-    
+
         with st.form("Load Data to Chroma"):
             st.subheader("Quiz Builder")
             st.write("Select PDFs for Ingestion, the topic for the quiz, and click Generate!")
-            
+
             topic_input = st.text_input("Topic for Generative Quiz", placeholder="Enter the topic of the document")
             questions = st.slider("Number of Questions", min_value=1, max_value=10, value=1)
-            
+
             submitted = st.form_submit_button("Submit")
             if submitted:
                 chroma_creator.create_chroma_collection()
-                
+
                 st.write(topic_input)
-                
+
                 # Test the Quiz Generator
                 generator = QuizGenerator(topic_input, questions, chroma_creator)
                 question_bank = generator.generate_quiz()
@@ -109,36 +111,39 @@ if __name__ == "__main__":
         screen.empty()
         with st.container():
             st.header("Generated Quiz Question: ")
-            
+
             # Task 9
             ##########################################################
-            quiz_manager = # Use our new QuizManager class
+            quiz_manager = QuizManager(question_bank)# Use our new QuizManager class
             # Format the question and display
             with st.form("Multiple Choice Question"):
                 ##### YOUR CODE HERE #####
-                index_question = # Use the get_question_at_index method to set the 0th index
+                index_question = quiz_manager.get_question_at_index(0)# Use the get_question_at_index method to set the 0th index
                 ##### YOUR CODE HERE #####
-                
+
                 # Unpack choices for radio
                 choices = []
                 for choice in index_question['choices']: # For loop unpack the data structure
                     ##### YOUR CODE HERE #####
-                    # Set the key from the index question 
+                    # Set the key from the index question
+                    key = choice['key']
+                    value = choice['value']
                     # Set the value from the index question
                     ##### YOUR CODE HERE #####
                     choices.append(f"{key}) {value}")
-                
+
                 ##### YOUR CODE HERE #####
                 # Display the question onto streamlit
+                st.write(index_question['question'])
                 ##### YOUR CODE HERE #####
-                
+
                 answer = st.radio( # Display the radio button with the choices
                     'Choose the correct answer',
                     choices
                 )
                 st.form_submit_button("Submit")
-                
-                if submitted: # On click submit 
+
+                if submitted: # On click submit
                     correct_answer_key = index_question['answer']
                     if answer.startswith(correct_answer_key): # Check if answer is correct
                         st.success("Correct!")
